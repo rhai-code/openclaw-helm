@@ -102,7 +102,7 @@ clawsuite:
 
     triggers:
       imageChange: true
-      configChange: false
+      configChange: true
 
   port: 3000
 
