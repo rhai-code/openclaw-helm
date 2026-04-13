@@ -37,6 +37,16 @@ ClawSuite will be built from source. To trigger the build:
   oc start-build {{ include "openclaw.fullname" . }}-clawsuite -n {{ .Release.Namespace }}
 
 Or wait for the ImageChange trigger to fire automatically.
+
+WARNING: The first build takes approximately 10 minutes to complete.
+
+To watch build progress:
+
+  # List all builds to find the build name:
+  oc get builds -n {{ .Release.Namespace }}
+
+  # Watch logs of the specific build:
+  oc logs -f build/{{ include "openclaw.fullname" . }}-clawsuite-1 -n {{ .Release.Namespace }}
 {{- end }}
 {{- end }}
 
