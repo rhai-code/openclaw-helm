@@ -23,10 +23,10 @@ A Helm chart for deploying [OpenClaw](https://openclaw.ai) AI Gateway on OpenShi
 
 ```bash
 # Install specific version from GitHub Container Registry
-helm install openclaw oci://ghcr.io/rhai-code/openclaw --version 1.0.1
+helm install openclaw oci://ghcr.io/rhai-code/openclaw --version 1.0.2
 
 # Or with custom values
-helm install openclaw oci://ghcr.io/rhai-code/openclaw --version 1.0.1 -f custom-values.yaml
+helm install openclaw oci://ghcr.io/rhai-code/openclaw --version 1.0.2 -f custom-values.yaml
 ```
 
 ### Install from Local Chart
@@ -50,7 +50,7 @@ helm install openclaw . -f custom-values.yaml
 oc new-project openclaw
 
 # Install from OCI registry
-helm install openclaw oci://ghcr.io/rhai-code/openclaw --version 1.0.1 \
+helm install openclaw oci://ghcr.io/rhai-code/openclaw --version 1.0.2 \
   --set route.host=openclaw.apps.your-cluster.com \
   --set openclaw.config.agent.model="openai/gpt-4o"
 
@@ -87,7 +87,7 @@ openclaw:
     channels:
       telegram:
         botToken: "${TELEGRAM_BOT_TOKEN}"
-  
+
   env:
     - name: OPENAI_API_KEY
       valueFrom:
@@ -112,10 +112,10 @@ Control who can access the web UI via Subject Access Review:
 oauthProxy:
   # Allow any authenticated user
   sar: '{"resource": "users", "verb": "get"}'
-  
+
   # Require specific group
   # sar: '{"resource": "groups", "name": "openclaw-users", "verb": "get"}'
-  
+
   # Cluster admin only
   # sar: '{"resource": "clusterrolebindings", "verb": "list"}'
 ```
@@ -126,7 +126,7 @@ oauthProxy:
 persistence:
   enabled: true
   size: 20Gi
-  storageClass: "gp3-csi"  # Specify your StorageClass
+  storageClass: "gp3-csi" # Specify your StorageClass
   accessMode: ReadWriteOnce
 ```
 
@@ -138,7 +138,7 @@ To connect OpenClaw to a vLLM-hosted or other OpenAI-compatible API:
 # 1. Define secrets (creates Kubernetes Secrets)
 secrets:
   vllm-secrets:
-    api-key: "dummy-key"  # vLLM accepts any key
+    api-key: "dummy-key" # vLLM accepts any key
     gateway-token: "secure-random-token"
 
 # 2. Configure OpenClaw to use vLLM
@@ -190,13 +190,13 @@ clawsuite:
   # image:
   #   repository: quay.io/your-org/clawsuite
   #   tag: v4.0.0
-  
+
   build:
     git:
       repository: https://github.com/outsourc-e/clawsuite.git
-      ref: main  # or a specific tag/commit
+      ref: main # or a specific tag/commit
     triggers:
-      imageChange: true  # Rebuild when base image updates
+      imageChange: true # Rebuild when base image updates
 ```
 
 ### Resource Limits
@@ -218,69 +218,69 @@ openclaw:
 
 ### Global Settings
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `replicaCount` | Number of replicas | `1` |
-| `strategy.type` | Deployment strategy | `Recreate` |
-| `imagePullSecrets` | Image pull secrets | `[]` |
-| `secrets` | Kubernetes Secrets to create | `{}` |
+| Parameter          | Description                  | Default    |
+| ------------------ | ---------------------------- | ---------- |
+| `replicaCount`     | Number of replicas           | `1`        |
+| `strategy.type`    | Deployment strategy          | `Recreate` |
+| `imagePullSecrets` | Image pull secrets           | `[]`       |
+| `secrets`          | Kubernetes Secrets to create | `{}`       |
 
 ### OpenClaw Configuration
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `openclaw.image.repository` | OpenClaw image | `ghcr.io/openclaw/openclaw` |
-| `openclaw.image.tag` | Image tag | `2026.4.12-slim` |
-| `openclaw.port` | WebSocket port | `18789` |
-| `openclaw.resources` | Resource limits | See values.yaml |
-| `openclaw.config` | openclaw.json content | Minimal default |
-| `openclaw.env` | Extra env vars | `[]` |
+| Parameter                   | Description           | Default                     |
+| --------------------------- | --------------------- | --------------------------- |
+| `openclaw.image.repository` | OpenClaw image        | `ghcr.io/openclaw/openclaw` |
+| `openclaw.image.tag`        | Image tag             | `2026.4.12-slim`            |
+| `openclaw.port`             | WebSocket port        | `18789`                     |
+| `openclaw.resources`        | Resource limits       | See values.yaml             |
+| `openclaw.config`           | openclaw.json content | Minimal default             |
+| `openclaw.env`              | Extra env vars        | `[]`                        |
 
 ### ClawSuite Configuration
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `clawsuite.enabled` | Enable ClawSuite | `true` |
-| `clawsuite.image.repository` | Pre-built image (optional) | `""` |
-| `clawsuite.build.git.repository` | Source git URL | `https://github.com/outsourc-e/clawsuite.git` |
-| `clawsuite.build.git.ref` | Git ref to build | `main` |
-| `clawsuite.resources` | Resource limits | See values.yaml |
+| Parameter                        | Description                | Default                                       |
+| -------------------------------- | -------------------------- | --------------------------------------------- |
+| `clawsuite.enabled`              | Enable ClawSuite           | `true`                                        |
+| `clawsuite.image.repository`     | Pre-built image (optional) | `""`                                          |
+| `clawsuite.build.git.repository` | Source git URL             | `https://github.com/outsourc-e/clawsuite.git` |
+| `clawsuite.build.git.ref`        | Git ref to build           | `main`                                        |
+| `clawsuite.resources`            | Resource limits            | See values.yaml                               |
 
 ### OAuth Proxy Configuration
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `oauthProxy.image.repository` | OAuth proxy image | `image-registry.openshift-image-registry.svc:5000/openshift/oauth-proxy` |
-| `oauthProxy.image.tag` | Image tag | `v4.4` |
-| `oauthProxy.sar` | Subject Access Review | `'{"resource": "users", "verb": "get"}'` |
-| `oauthProxy.cookieSecret` | Cookie secret (auto-generated if empty) | `""` |
+| Parameter                     | Description                             | Default                                                                  |
+| ----------------------------- | --------------------------------------- | ------------------------------------------------------------------------ |
+| `oauthProxy.image.repository` | OAuth proxy image                       | `image-registry.openshift-image-registry.svc:5000/openshift/oauth-proxy` |
+| `oauthProxy.image.tag`        | Image tag                               | `v4.4`                                                                   |
+| `oauthProxy.sar`              | Subject Access Review                   | `'{"resource": "users", "verb": "get"}'`                                 |
+| `oauthProxy.cookieSecret`     | Cookie secret (auto-generated if empty) | `""`                                                                     |
 
 ### Persistence
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `persistence.enabled` | Enable PVC | `true` |
-| `persistence.size` | PVC size | `10Gi` |
-| `persistence.storageClass` | StorageClass name | `""` (default) |
-| `persistence.mountPath` | Mount path | `/home/node/.openclaw` |
+| Parameter                  | Description       | Default                |
+| -------------------------- | ----------------- | ---------------------- |
+| `persistence.enabled`      | Enable PVC        | `true`                 |
+| `persistence.size`         | PVC size          | `10Gi`                 |
+| `persistence.storageClass` | StorageClass name | `""` (default)         |
+| `persistence.mountPath`    | Mount path        | `/home/node/.openclaw` |
 
 ### Network Policy
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `networkPolicy.enabled` | Enable NetworkPolicy | `true` |
-| `networkPolicy.allowWanEgress` | Allow egress to WAN | `true` |
-| `networkPolicy.additionalIngress` | Custom ingress rules | `[]` |
-| `networkPolicy.additionalEgress` | Custom egress rules | `[]` |
+| Parameter                         | Description          | Default |
+| --------------------------------- | -------------------- | ------- |
+| `networkPolicy.enabled`           | Enable NetworkPolicy | `true`  |
+| `networkPolicy.allowWanEgress`    | Allow egress to WAN  | `true`  |
+| `networkPolicy.additionalIngress` | Custom ingress rules | `[]`    |
+| `networkPolicy.additionalEgress`  | Custom egress rules  | `[]`    |
 
 ### Route
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `route.enabled` | Enable Route | `true` |
-| `route.host` | Route hostname | Auto-generated |
-| `route.tls.termination` | TLS termination type | `edge` |
-| `route.tls.insecureEdgeTerminationPolicy` | Insecure policy | `Redirect` |
+| Parameter                                 | Description          | Default        |
+| ----------------------------------------- | -------------------- | -------------- |
+| `route.enabled`                           | Enable Route         | `true`         |
+| `route.host`                              | Route hostname       | Auto-generated |
+| `route.tls.termination`                   | TLS termination type | `edge`         |
+| `route.tls.insecureEdgeTerminationPolicy` | Insecure policy      | `Redirect`     |
 
 ## Security Considerations
 
@@ -297,6 +297,7 @@ serviceAccount:
 ### Network Policy
 
 The NetworkPolicy:
+
 - **Denies** all ingress from outside the namespace except OpenShift router
 - **Allows** egress to WAN (0.0.0.0/0 excluding RFC1918 ranges)
 - **Allows** DNS resolution
@@ -305,6 +306,7 @@ The NetworkPolicy:
 ### Container Security
 
 All containers run with:
+
 - Non-root user (UID 1000)
 - Read-only root filesystem (OAuth proxy)
 - Dropped capabilities
@@ -342,25 +344,28 @@ oc logs -n openclaw build/{{ include "openclaw.fullname" . }}-clawsuite-1
 ### Common Issues
 
 **Issue**: OAuth proxy fails with "Unauthorized"
+
 - **Solution**: Check SAR configuration matches your OpenShift RBAC
 
 **Issue**: ClawSuite can't connect to OpenClaw
+
 - **Solution**: Verify pods are in same namespace (NetworkPolicy allows intra-namespace)
 
 **Issue**: BuildConfig fails
+
 - **Solution**: Ensure cluster can reach GitHub or configure a mirror
 
 ## Upgrading
 
 ```bash
 # Upgrade from OCI registry
-helm upgrade openclaw oci://ghcr.io/rhai-code/openclaw --version 1.0.1
+helm upgrade openclaw oci://ghcr.io/rhai-code/openclaw --version 1.0.2
 
 # Upgrade from local chart
 helm upgrade openclaw .
 
 # Upgrade with new values
-helm upgrade openclaw oci://ghcr.io/rhai-code/openclaw --version 1.0.1 -f new-values.yaml
+helm upgrade openclaw oci://ghcr.io/rhai-code/openclaw --version 1.0.2 -f new-values.yaml
 ```
 
 ## Uninstallation

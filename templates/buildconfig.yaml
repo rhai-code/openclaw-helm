@@ -30,8 +30,7 @@ spec:
       imageChange:
         from:
           kind: ImageStreamTag
-          name: {{ .Values.clawsuite.build.builderImage.repository }}:{{ .Values.clawsuite.build.builderImage.tag }}
-          namespace: openshift
+          name: {{ include "openclaw.fullname" . }}-builder:latest
     {{- end }}
   runPolicy: Serial
 {{- end }}
