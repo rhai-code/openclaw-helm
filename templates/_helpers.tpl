@@ -86,7 +86,7 @@ ClawSuite image reference
 {{- if .Values.clawsuite.image.repository }}
 {{- printf "%s:%s" .Values.clawsuite.image.repository .Values.clawsuite.image.tag }}
 {{- else }}
-{{- printf "%s/%s:%s" .Release.Namespace (include "openclaw.fullname" .) "latest" }}
+{{- printf "image-registry.openshift-image-registry.svc:5000/%s/%s-clawsuite:%s" .Release.Namespace (include "openclaw.fullname" .) "latest" }}
 {{- end }}
 {{- end }}
 
