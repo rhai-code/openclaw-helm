@@ -32,8 +32,11 @@ openclaw:
 
   # Refer to: https://docs.openclaw.ai/gateway/configuration
   config:
-    agent:
-      model: "openai/gpt-4o"
+    agents:
+      - id: clawd
+        name: Clawd
+        model:
+          primary: "openai/gpt-5.4"
     gateway:
       bind: "lan"
       port: 18789
@@ -44,8 +47,11 @@ openclaw:
   # Uncomment and modify the following sections:
   #
   # config:
-  #   agent:
-  #     model: "openai/meta-llama/Llama-2-70b-chat-hf"  # Model served by vLLM
+  #   agents:
+  #     - id: clawd
+  #       name: Clawd
+  #       model:
+  #         primary: "openai/meta-llama/Llama-2-70b-chat-hf"  # Model served by vLLM
   #
   # env:
   #   - name: OPENAI_BASE_URL
