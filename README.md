@@ -23,10 +23,10 @@ A Helm chart for deploying [OpenClaw](https://openclaw.ai) AI Gateway on OpenShi
 
 ```bash
 # Install specific version from GitHub Container Registry
-helm install openclaw oci://ghcr.io/rhai-code/openclaw --version 1.0.0
+helm install openclaw oci://ghcr.io/rhai-code/openclaw --version 1.0.1
 
 # Or with custom values
-helm install openclaw oci://ghcr.io/rhai-code/openclaw --version 1.0.0 -f custom-values.yaml
+helm install openclaw oci://ghcr.io/rhai-code/openclaw --version 1.0.1 -f custom-values.yaml
 ```
 
 ### Install from Local Chart
@@ -50,7 +50,7 @@ helm install openclaw . -f custom-values.yaml
 oc new-project openclaw
 
 # Install from OCI registry
-helm install openclaw oci://ghcr.io/rhai-code/openclaw --version 1.0.0 \
+helm install openclaw oci://ghcr.io/rhai-code/openclaw --version 1.0.1 \
   --set route.host=openclaw.apps.your-cluster.com \
   --set openclaw.config.agent.model="openai/gpt-4o"
 
@@ -354,13 +354,13 @@ oc logs -n openclaw build/{{ include "openclaw.fullname" . }}-clawsuite-1
 
 ```bash
 # Upgrade from OCI registry
-helm upgrade openclaw oci://ghcr.io/rhai-code/openclaw --version 1.0.0
+helm upgrade openclaw oci://ghcr.io/rhai-code/openclaw --version 1.0.1
 
 # Upgrade from local chart
 helm upgrade openclaw .
 
 # Upgrade with new values
-helm upgrade openclaw oci://ghcr.io/rhai-code/openclaw --version 1.0.0 -f new-values.yaml
+helm upgrade openclaw oci://ghcr.io/rhai-code/openclaw --version 1.0.1 -f new-values.yaml
 ```
 
 ## Uninstallation
