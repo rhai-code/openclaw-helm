@@ -95,11 +95,6 @@ clawsuite:
       repository: https://github.com/outsourc-e/clawsuite.git
       ref: v4.0.0
 
-    builderImage:
-      repository: registry.redhat.io/ubi9/nodejs-22
-      tag: latest
-      pullPolicy: IfNotPresent
-
     triggers:
       imageChange: true
       configChange: true
