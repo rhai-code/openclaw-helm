@@ -8,15 +8,19 @@ metadata:
     {{- include "openclaw.labels" . | nindent 4 }}
 spec:
   source:
-    type: Git
-    git:
-      uri: {{ .Values.clawsuite.build.git.repository }}
-      ref: {{ .Values.clawsuite.build.git.ref }}
-    contextDir: /
+    type: Dockerfile
+    dockerfile: |
+{{ .Files.Get "files/Dockerfile.clawsuite" | indent 6 }}
   strategy:
     type: Docker
     dockerStrategy:
-      dockerfilePath: Dockerfile
+      buildArgs:
+        - name: BASE
+          value: image-registry.openshift-image-registry.svc:5000/openshift/nodejs-22:latest
+        - name: CLAWSUITE_REF
+          value: {{ .Values.clawsuite.build.git.ref }}
+        - name: OPENCLAW_VERSION
+          value: {{ .Chart.AppVersion }}
   output:
     to:
       kind: ImageStreamTag
@@ -30,7 +34,8 @@ spec:
       imageChange:
         from:
           kind: ImageStreamTag
-          name: {{ include "openclaw.fullname" . }}-builder:latest
+          name: nodejs-22:latest
+          namespace: openshift
     {{- end }}
   runPolicy: Serial
 {{- end }}

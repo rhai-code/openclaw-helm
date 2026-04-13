@@ -1,0 +1,33 @@
+ARG BASE=registry.redhat.io/ubi9/nodejs-22:latest
+ARG CLAWSUITE_REF=main
+ARG OPENCLAW_VERSION=latest
+
+FROM ${BASE} AS builder
+WORKDIR /build
+# Skip Playwright browser download (not needed for production)
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+ARG CLAWSUITE_REF
+RUN git clone --depth 1 --branch ${CLAWSUITE_REF} \
+    https://github.com/outsourc-e/clawsuite.git /build
+RUN rm -f package-lock.json && \
+    npm install
+RUN npm run build
+
+FROM ${BASE} AS skills
+WORKDIR /tmp
+ARG OPENCLAW_VERSION
+RUN npm install --global --ignore-scripts openclaw@${OPENCLAW_VERSION}
+
+FROM ${BASE} AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+
+COPY --from=builder /build/dist ./dist
+COPY --from=builder /build/node_modules ./node_modules
+COPY --from=builder /build/package.json ./
+COPY --from=builder /build/server-entry.js ./
+COPY --from=skills /opt/app-root/src/.npm-global/lib/node_modules/openclaw/skills ./openclaw-skills
+
+EXPOSE 3000
+USER 1001
+CMD ["node", "server-entry.js"]
