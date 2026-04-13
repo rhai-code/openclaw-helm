@@ -16,7 +16,7 @@ spec:
     dockerStrategy:
       buildArgs:
         - name: BASE
-          value: image-registry.openshift-image-registry.svc:5000/openshift/nodejs-22:latest
+          value: image-registry.openshift-image-registry.svc:5000/openshift/nodejs:22-ubi9
         - name: CLAWSUITE_REF
           value: {{ .Values.clawsuite.build.git.ref }}
         - name: OPENCLAW_VERSION
