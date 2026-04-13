@@ -20,6 +20,20 @@ openclaw:
     tag: ""
     pullPolicy: IfNotPresent
 
+  init:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 100Mi
+      limits:
+        cpu: 50m
+        memory: 200Mi
+    image:
+      registry: registry.access.redhat.com
+      repository: ubi9/ubi
+      tag: latest
+      pullPolicy: IfNotPresent
+
   port: 18789
 
   resources:
@@ -157,10 +171,8 @@ securityContext:
 # Ephemeral storage for cache and home directory
 ephemeral:
   cache:
-    enabled: true
     sizeLimit: 1Gi
   home:
-    enabled: true
     sizeLimit: 100Mi
 
 networkPolicy:

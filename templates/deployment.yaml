@@ -44,6 +44,28 @@ spec:
       serviceAccountName: {{ include "openclaw.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.securityContext | nindent 8 }}
+      initContainers:
+        - name: init-config
+          {{- with .Values.openclaw.init.image }}
+          image: "{{ .registry }}/{{ .repository }}:{{ .tag }}"
+          imagePullPolicy: {{ .pullPolicy }}
+          {{- end }}
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: home
+              mountPath: /home/node
+          command:
+            - /bin/sh
+          args:
+            - -c
+            - |-
+              mkdir -p /home/node/.openclaw
+              cp /config/*.json /home/node/.openclaw/
+          {{- with .Values.openclaw.init.resources }}
+          resources:
+            {{- toYaml . |nindent 12 }}
+          {{- end }}
       containers:
         # OpenClaw Gateway Container
         - name: openclaw
@@ -62,23 +84,16 @@ spec:
             {{- toYaml . | nindent 12 }}
             {{- end }}
           volumeMounts:
-            - name: config
-              mountPath: /home/node/.openclaw/openclaw.json
-              subPath: openclaw.json
             - name: workspace
               mountPath: /workspace
             {{- if .Values.persistence.enabled }}
             - name: data
               mountPath: {{ .Values.persistence.mountPath }}
             {{- end }}
-            {{- if .Values.ephemeral.cache.enabled }}
             - name: cache
               mountPath: /home/node/.cache
-            {{- end }}
-            {{- if .Values.ephemeral.home.enabled }}
             - name: home
               mountPath: /home/node
-            {{- end }}
           {{- if .Values.openclaw.livenessProbe.enabled }}
           livenessProbe:
             httpGet:
@@ -110,6 +125,7 @@ spec:
             runAsNonRoot: true
           command:
             - node
+          args:
             - openclaw.mjs
             - gateway
             - --allow-unconfigured
@@ -206,16 +222,12 @@ spec:
         {{- else }}
           emptyDir: {}
         {{- end }}
-        {{- if .Values.ephemeral.cache.enabled }}
         - name: cache
           emptyDir:
             sizeLimit: {{ .Values.ephemeral.cache.sizeLimit }}
-        {{- end }}
-        {{- if .Values.ephemeral.home.enabled }}
         - name: home
           emptyDir:
             sizeLimit: {{ .Values.ephemeral.home.sizeLimit }}
-        {{- end }}
         - name: oauth-tls
           secret:
             secretName: {{ include "openclaw.fullname" . }}-tls
