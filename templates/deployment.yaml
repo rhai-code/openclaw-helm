@@ -65,13 +65,11 @@ spec:
             - name: config
               mountPath: /home/node/.openclaw/openclaw.json
               subPath: openclaw.json
+            - name: workspace
+              mountPath: /workspace
             {{- if .Values.persistence.enabled }}
             - name: data
               mountPath: {{ .Values.persistence.mountPath }}
-            {{- end }}
-            {{- if .Values.workspace.enabled }}
-            - name: workspace
-              mountPath: {{ .Values.workspace.mountPath }}
             {{- end }}
             {{- if .Values.ephemeral.cache.enabled }}
             - name: cache
@@ -201,10 +199,12 @@ spec:
           persistentVolumeClaim:
             claimName: {{ include "openclaw.fullname" . }}-data
         {{- end }}
-        {{- if .Values.workspace.enabled }}
         - name: workspace
+        {{- if .Values.workspace.enabled }}
           persistentVolumeClaim:
             claimName: {{ include "openclaw.fullname" . }}-workspace
+        {{- else }}
+          emptyDir: {}
         {{- end }}
         {{- if .Values.ephemeral.cache.enabled }}
         - name: cache
