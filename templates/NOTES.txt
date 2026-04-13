@@ -27,6 +27,25 @@ OpenShift Route is disabled. To access the application, you'll need to configure
 an alternative ingress method (port-forward, LoadBalancer, NodePort, etc.).
 {{- end }}
 
+
+## Storage
+
+{{- if .Values.persistence.enabled }}
+Persistent storage is enabled with PVC:
+  Name: {{ include "openclaw.fullname" . }}-data
+  Size: {{ .Values.persistence.size }}
+  StorageClass: {{ .Values.persistence.storageClass | default "(default)" }}
+{{- else }}
+Persistent storage is DISABLED. Data will be lost when pods restart!
+To enable persistence, set persistence.enabled=true in values.yaml.
+{{- end }}
+
+## Security
+
+- NetworkPolicy is {{ if .Values.networkPolicy.enabled }}enabled{{ else }}disabled{{ end }}
+- ServiceAccount has no RBAC bindings (read-only)
+- All containers run as non-root
+
 {{- if .Values.clawsuite.enabled }}
 {{- if not .Values.clawsuite.image.repository }}
 
@@ -59,29 +78,12 @@ The OpenClaw configuration is stored in a ConfigMap:
 To update the configuration, edit values.yaml and run helm upgrade, or:
 
   oc edit configmap {{ include "openclaw.fullname" . }}-config -n {{ .Release.Namespace }}
-
-## Storage
-
-{{- if .Values.persistence.enabled }}
-Persistent storage is enabled with PVC:
-  Name: {{ include "openclaw.fullname" . }}-data
-  Size: {{ .Values.persistence.size }}
-  StorageClass: {{ .Values.persistence.storageClass | default "(default)" }}
-{{- else }}
-Persistent storage is DISABLED. Data will be lost when pods restart!
-To enable persistence, set persistence.enabled=true in values.yaml.
-{{- end }}
-
-## Security
-
-- NetworkPolicy is {{ if .Values.networkPolicy.enabled }}enabled{{ else }}disabled{{ end }}
-- ServiceAccount has no RBAC bindings (read-only)
-- All containers run as non-root
-
 ## Documentation
 
 - OpenClaw: https://docs.openclaw.ai
+{{- if .Values.clawsuite.enabled }}
 - ClawSuite: https://github.com/outsourc-e/clawsuite
+{{- end }}
 - OpenShift OAuth Proxy: https://docs.openshift.com/container-platform/latest/authentication/oauth-proxy.html
 
 ## Support
