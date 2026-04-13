@@ -7,7 +7,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  REPOSITORY: rhai-code/openclaw
+  REPOSITORY: rhai-code
 
 jobs:
   lint-and-test:
@@ -66,7 +66,7 @@ jobs:
           echo "Checking if version $CHART_VERSION exists..."
 
           # Try to inspect the chart with the version tag using skopeo
-          if skopeo inspect docker://${{ env.REGISTRY }}/${{ env.REPOSITORY }}:$CHART_VERSION >/dev/null 2>&1; then
+          if skopeo inspect docker://${{ env.REGISTRY }}/${{ env.REPOSITORY }}/openclaw:$CHART_VERSION >/dev/null 2>&1; then
             echo "::warning::Chart version $CHART_VERSION already exists in OCI registry. Skipping version tag push."
             echo "To publish a new version, update the version field in Chart.yaml"
           else
