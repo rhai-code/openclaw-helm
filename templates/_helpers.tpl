@@ -100,3 +100,17 @@ true
 false
 {{- end }}
 {{- end }}
+
+{{/*
+OAuth secret checksum
+*/}}
+{{- define "openclaw.oauthSecretHash" -}}
+{{- include (print .Template.BasePath "/secret.yaml") . | sha256sum | trunc 8 }}
+{{- end }}
+
+{{/*
+User-defined secrets checksum (from secrets.yaml template)
+*/}}
+{{- define "openclaw.userSecretsHash" -}}
+{{- include (print .Template.BasePath "/secrets.yaml") . | sha256sum | trunc 8 }}
+{{- end }}

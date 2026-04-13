@@ -9,7 +9,9 @@ metadata:
     {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
-    checksum/config: {{ include "openclaw.configHash" . }}
+    checksum/config: {{ include "openclaw.configHash" . | quote }}
+    checksum/secret-oauth: {{ include "openclaw.oauthSecretHash" . | quote }}
+    checksum/secrets-user: {{ include "openclaw.userSecretsHash" . | quote }}
     {{- with .Values.podAnnotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -28,7 +30,9 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
       annotations:
-        checksum/config: {{ include "openclaw.configHash" . }}
+        checksum/config: {{ include "openclaw.configHash" . | quote }}
+        checksum/secret-oauth: {{ include "openclaw.oauthSecretHash" . | quote }}
+        checksum/secrets-user: {{ include "openclaw.userSecretsHash" . | quote }}
         {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
