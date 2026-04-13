@@ -65,8 +65,8 @@ jobs:
           CHART_VERSION=${{ needs.lint-and-test.outputs.chart_version }}
           echo "Checking if version $CHART_VERSION exists..."
 
-          # Try to pull the chart with the version tag
-          if helm pull oci://${{ env.REGISTRY }}/${{ env.REPOSITORY }} --version $CHART_VERSION 2>/dev/null; then
+          # Try to inspect the chart with the version tag using skopeo
+          if skopeo inspect docker://${{ env.REGISTRY }}/${{ env.REPOSITORY }}:$CHART_VERSION >/dev/null 2>&1; then
             echo "::warning::Chart version $CHART_VERSION already exists in OCI registry. Skipping version tag push."
             echo "To publish a new version, update the version field in Chart.yaml"
           else
