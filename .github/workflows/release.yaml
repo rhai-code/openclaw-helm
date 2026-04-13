@@ -55,25 +55,28 @@ jobs:
         id: check_version
         run: |
           CHART_VERSION=${{ needs.lint-and-test.outputs.chart_version }}
+          COMMIT_SHA=${{ github.sha }}
+          COMMIT_SHA_SHORT=$(echo $COMMIT_SHA | cut -c1-8)
           echo "chart_version=$CHART_VERSION" >> $GITHUB_OUTPUT
           echo "Checking if version $CHART_VERSION exists..."
 
           # Try to pull the chart with the version tag using helm
           if helm pull oci://${{ env.REGISTRY }}/${{ env.REPOSITORY }}/openclaw --version $CHART_VERSION --destination /tmp 2>/dev/null; then
             echo "exists=true" >> $GITHUB_OUTPUT
+            echo "commit_tag=${CHART_VERSION}-dev-build-${COMMIT_SHA_SHORT}" >> $GITHUB_OUTPUT
             echo "Chart version $CHART_VERSION already exists"
           else
             echo "exists=false" >> $GITHUB_OUTPUT
+            echo "commit_tag=${CHART_VERSION}-build-${COMMIT_SHA_SHORT}" >> $GITHUB_OUTPUT
             echo "Chart version $CHART_VERSION does not exist"
           fi
 
       - name: Package and push chart with commit SHA
         run: |
-          COMMIT_SHA=${{ github.sha }}
-          echo "Packaging and pushing chart with commit SHA: $COMMIT_SHA"
-          helm package --version=$COMMIT_SHA --destination ./dist .
-          helm push ./dist/openclaw-$COMMIT_SHA.tgz oci://${{ env.REGISTRY }}/${{ env.REPOSITORY }} --debug
-          echo "Pushed chart with commit SHA tag: $COMMIT_SHA"
+          COMMIT_VERSION=${{ steps.check_version.outputs.commit_tag }}
+          echo "Packaging and pushing chart with version: $COMMIT_VERSION"
+          helm package --version=$COMMIT_VERSION --destination ./dist .
+          helm push ./dist/openclaw-$COMMIT_VERSION.tgz oci://${{ env.REGISTRY }}/${{ env.REPOSITORY }} --debug
 
       - name: Package and push chart with version (if not exists)
         if: steps.check_version.outputs.exists == 'false'
@@ -82,17 +85,18 @@ jobs:
           echo "Packaging and pushing chart with version: $CHART_VERSION"
           helm package --destination ./dist .
           helm push ./dist/openclaw-$CHART_VERSION.tgz oci://${{ env.REGISTRY }}/${{ env.REPOSITORY }} --debug
-          echo "Pushed chart with version tag: $CHART_VERSION"
 
       - name: Report status
         run: |
+          COMMIT_VERSION=${{ steps.check_version.outputs.commit_tag }}
           CHART_VERSION=${{ steps.check_version.outputs.chart_version }}
           EXISTS=${{ steps.check_version.outputs.exists }}
-          COMMIT_SHA=${{ github.sha }}
-          echo "Chart published with commit SHA tag: $COMMIT_SHA"
+          echo "Chart published with:"
+          echo "- ${COMMIT_VERSION}"
           if [ "$EXISTS" == "true" ]; then
-            echo "::warning::Chart version $CHART_VERSION already existed. Only commit SHA tag was added."
+            echo
+            echo "::warning::Chart version $CHART_VERSION already published."
             echo "To publish a new version, update the version field in Chart.yaml"
           else
-            echo "Successfully published new chart version $CHART_VERSION and commit SHA tag $COMMIT_SHA"
+            echo "- ${CHART_VERSION}"
           fi
