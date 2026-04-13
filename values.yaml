@@ -200,7 +200,7 @@ route:
   host: ""
   path: /
   tls:
-    termination: edge
+    termination: reencrypt
     insecureEdgeTerminationPolicy: Redirect
   annotations: {}
   labels: {}

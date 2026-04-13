@@ -5,10 +5,11 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "openclaw.labels" . | nindent 4 }}
-  {{- with .Values.service.annotations }}
   annotations:
+    service.beta.openshift.io/serving-cert-secret-name: {{ include "openclaw.fullname" . }}-tls
+    {{- with .Values.service.annotations }}
     {{- toYaml . | nindent 4 }}
-  {{- end }}
+    {{- end }}
 spec:
   type: {{ .Values.service.type }}
   ports:
