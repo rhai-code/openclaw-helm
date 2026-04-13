@@ -1,0 +1,213 @@
+# Default values for openclaw.
+# This is a YAML-formatted file.
+
+# -- Secrets to be created as Kubernetes Secrets
+# These can be referenced by environment variables using valueFrom.secretKeyRef
+# IMPORTANT: Do NOT commit real secret values to git! Use --set or --values-file
+secrets: {}
+  # openclaw-secrets:
+  #   openai-api-key: "sk-your-key-here"
+  #   gateway-token: "secure-random-token"
+
+replicaCount: 1
+
+strategy:
+  type: Recreate
+
+openclaw:
+  image:
+    repository: ghcr.io/openclaw/openclaw
+    tag: "2026.4.12-slim"
+    pullPolicy: IfNotPresent
+
+  port: 18789
+
+  resources:
+    requests:
+      cpu: "1"
+      memory: "2Gi"
+    limits:
+      cpu: "4"
+      memory: "8Gi"
+
+  # Refer to: https://docs.openclaw.ai/gateway/configuration
+  config:
+    agent:
+      model: "openai/gpt-4o"
+    gateway:
+      bind: "lan"
+      port: 18789
+      auth:
+        mode: "token"
+
+  # Example: Connect to vLLM-hosted OpenAI-compatible API
+  # Uncomment and modify the following sections:
+  #
+  # config:
+  #   agent:
+  #     model: "openai/meta-llama/Llama-2-70b-chat-hf"  # Model served by vLLM
+  #
+  # env:
+  #   - name: OPENAI_BASE_URL
+  #     value: "http://vllm.your-namespace.svc.cluster.local:8000/v1"
+  #   - name: OPENAI_API_KEY
+  #     valueFrom:
+  #       secretKeyRef:
+  #         name: vllm-secrets
+  #         key: api-key
+
+  env: []
+    # Basic example with hardcoded value (NOT recommended for secrets):
+    # - name: NODE_ENV
+    #   value: "production"
+    #
+    # Secure example using Kubernetes Secrets (RECOMMENDED):
+    # - name: OPENAI_API_KEY
+    #   valueFrom:
+    #     secretKeyRef:
+    #       name: openclaw-secrets
+    #       key: openai-api-key
+
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 3
+
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 15
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+clawsuite:
+  enabled: true
+
+  image:
+    repository: ""
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+  build:
+    git:
+      repository: https://github.com/outsourc-e/clawsuite.git
+      ref: v4.0.0
+
+    builderImage:
+      repository: registry.redhat.io/ubi9/nodejs-22
+      tag: latest
+      pullPolicy: IfNotPresent
+
+    triggers:
+      imageChange: true
+      configChange: false
+
+  port: 3000
+
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "2"
+      memory: "4Gi"
+
+  env: []
+    # - name: CLAWDBOT_GATEWAY_URL
+    #   value: "ws://localhost:18789"
+    # - name: CLAWDBOT_GATEWAY_TOKEN
+    #   valueFrom:
+    #     secretKeyRef:
+    #       name: openclaw-secrets
+    #       key: gateway-token
+
+oauthProxy:
+  image:
+    repository: image-registry.openshift-image-registry.svc:5000/openshift/oauth-proxy
+    tag: "v4.4"
+    pullPolicy: IfNotPresent
+
+  port: 8443
+
+  cookieSecret: ""
+
+  # Subject Access Review (SAR) configuration
+  # Examples:
+  #   Any authenticated user: '{"resource": "users", "verb": "get"}'
+  #   Specific group: '{"resource": "groups", "name": "openclaw-users", "verb": "get"}'
+  #   Cluster admin only: '{"resource": "clusterrolebindings", "verb": "list"}'
+  sar: '{"namespace": "{{ .Release.Namespace }}", "resource": "services", "verb": "get"}'
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+persistence:
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: 10Gi
+  storageClass: ""
+  annotations: {}
+  mountPath: /home/node/.openclaw
+
+# Workspace persistence for agent data
+workspace:
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: 10Gi
+  storageClass: ""
+  annotations: {}
+  mountPath: /home/node/.openclaw/workspace
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+  automountServiceAccountToken: false
+
+securityContext:
+  runAsNonRoot: true
+
+# Ephemeral storage for cache and home directory
+ephemeral:
+  cache:
+    enabled: true
+    sizeLimit: 1Gi
+  home:
+    enabled: true
+    sizeLimit: 100Mi
+
+networkPolicy:
+  enabled: true
+  allowWanEgress: true
+  additionalIngress: []
+  additionalEgress: []
+
+service:
+  type: ClusterIP
+  port: 443
+  targetPort: 8443
+  annotations: {}
+
+route:
+  enabled: true
+  host: ""
+  path: /
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  annotations: {}
+  labels: {}
+
+podAnnotations: {}
+podLabels: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+topologySpreadConstraints: []

@@ -1,0 +1,9 @@
+# Git files
+.git/
+.gitignore
+
+# GitHub CI/CD
+.github/
+
+# This file itself
+.helmignore

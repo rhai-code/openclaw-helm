@@ -1,0 +1,37 @@
+{{- if and .Values.clawsuite.enabled (not .Values.clawsuite.image.repository) }}
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: {{ include "openclaw.fullname" . }}-clawsuite
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "openclaw.labels" . | nindent 4 }}
+spec:
+  source:
+    type: Git
+    git:
+      uri: {{ .Values.clawsuite.build.git.repository }}
+      ref: {{ .Values.clawsuite.build.git.ref }}
+    contextDir: /
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: Dockerfile
+  output:
+    to:
+      kind: ImageStreamTag
+      name: {{ include "openclaw.fullname" . }}-clawsuite:latest
+  triggers:
+    {{- if .Values.clawsuite.build.triggers.configChange }}
+    - type: ConfigChange
+    {{- end }}
+    {{- if .Values.clawsuite.build.triggers.imageChange }}
+    - type: ImageChange
+      imageChange:
+        from:
+          kind: ImageStreamTag
+          name: {{ .Values.clawsuite.build.builderImage.repository }}:{{ .Values.clawsuite.build.builderImage.tag }}
+          namespace: openshift
+    {{- end }}
+  runPolicy: Serial
+{{- end }}

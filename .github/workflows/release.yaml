@@ -1,0 +1,78 @@
+name: Release Helm Chart
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  REGISTRY: ghcr.io
+  REPOSITORY: rhai-code/openclaw
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Lint chart
+        run: helm lint .
+
+      - name: Test template rendering
+        run: helm template openclaw .
+
+      - name: Extract chart version
+        id: chart_version
+        run: |
+          VERSION=$(grep '^version:' Chart.yaml | awk '{print $2}')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Chart version: $VERSION"
+
+    outputs:
+      chart_version: ${{ steps.chart_version.outputs.version }}
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Package chart
+        run: helm package . --destination ./dist
+
+      - name: Push chart with commit SHA
+        run: |
+          COMMIT_SHA=${{ github.sha }}
+          helm push ./dist/openclaw-*.tgz oci://${{ env.REGISTRY }}/${{ env.REPOSITORY }} --debug
+          echo "Pushed chart with commit SHA: $COMMIT_SHA"
+
+      - name: Check if chart version exists and push if not
+        run: |
+          CHART_VERSION=${{ needs.lint-and-test.outputs.chart_version }}
+          echo "Checking if version $CHART_VERSION exists..."
+
+          # Try to pull the chart with the version tag
+          if helm pull oci://${{ env.REGISTRY }}/${{ env.REPOSITORY }} --version $CHART_VERSION 2>/dev/null; then
+            echo "::warning::Chart version $CHART_VERSION already exists in OCI registry. Skipping version tag push."
+            echo "To publish a new version, update the version field in Chart.yaml"
+          else
+            echo "Chart version $CHART_VERSION does not exist. Pushing..."
+            # Package again with specific version to ensure clean metadata
+            helm package . --destination ./dist --version $CHART_VERSION
+            helm push ./dist/openclaw-${CHART_VERSION}.tgz oci://${{ env.REGISTRY }}/${{ env.REPOSITORY }}
+            echo "Successfully pushed chart version $CHART_VERSION"
+          fi

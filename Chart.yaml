@@ -1,0 +1,24 @@
+apiVersion: v2
+name: openclaw
+description: A Helm chart for OpenClaw AI Gateway with optional ClawSuite sidecar on OpenShift
+type: application
+version: 1.0.0
+appVersion: "2026.4.12"
+keywords:
+  - openclaw
+  - ai
+  - gateway
+  - openshift
+  - oauth
+home: https://openclaw.ai
+sources:
+  - https://github.com/openclaw/openclaw
+  - https://github.com/outsourc-e/clawsuite
+maintainers:
+  - name: OpenClaw Community
+    email: support@openclaw.ai
+annotations:
+  openshift.io/display-name: OpenClaw AI Gateway
+  openshift.io/provider-display-name: OpenClaw
+  openshift.io/documentation-url: https://docs.openclaw.ai
+  openshift.io/support-url: https://github.com/openclaw/openclaw/issues

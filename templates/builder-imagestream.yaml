@@ -1,0 +1,21 @@
+{{- if and .Values.clawsuite.enabled (not .Values.clawsuite.image.repository) }}
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: {{ include "openclaw.fullname" . }}-builder
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "openclaw.labels" . | nindent 4 }}
+spec:
+  lookupPolicy:
+    local: true
+  tags:
+    - name: latest
+      from:
+        kind: DockerImage
+        name: {{ .Values.clawsuite.build.builderImage.repository }}:{{ .Values.clawsuite.build.builderImage.tag }}
+      importPolicy:
+        scheduled: true
+      referencePolicy:
+        type: Local
+{{- end }}

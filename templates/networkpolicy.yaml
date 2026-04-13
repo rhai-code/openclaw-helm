@@ -1,0 +1,77 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "openclaw.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "openclaw.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "openclaw.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow from OpenShift router (openshift-ingress namespace)
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-ingress
+      ports:
+        - protocol: TCP
+          port: {{ .Values.oauthProxy.port }}
+    # Allow from same namespace (pod-to-pod communication)
+    - from:
+        - podSelector: {}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.openclaw.port }}
+        - protocol: TCP
+          port: {{ .Values.oauthProxy.port }}
+        {{- if .Values.clawsuite.enabled }}
+        - protocol: TCP
+          port: {{ .Values.clawsuite.port }}
+        {{- end }}
+    # Allow additional custom ingress rules
+    {{- with .Values.networkPolicy.additionalIngress }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  egress:
+    # Allow DNS resolution
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+    # Allow intra-namespace communication
+    - to:
+        - podSelector: {}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.openclaw.port }}
+        - protocol: TCP
+          port: {{ .Values.oauthProxy.port }}
+        {{- if .Values.clawsuite.enabled }}
+        - protocol: TCP
+          port: {{ .Values.clawsuite.port }}
+        {{- end }}
+    # Allow WAN egress for OpenClaw API calls
+    {{- if .Values.networkPolicy.allowWanEgress }}
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+    {{- end }}
+    # Allow additional custom egress rules
+    {{- with .Values.networkPolicy.additionalEgress }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+{{- end }}
