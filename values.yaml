@@ -17,7 +17,7 @@ strategy:
 openclaw:
   image:
     repository: ghcr.io/openclaw/openclaw
-    tag: "2026.4.12-slim"
+    tag: ""
     pullPolicy: IfNotPresent
 
   port: 18789

@@ -43,7 +43,7 @@ spec:
       containers:
         # OpenClaw Gateway Container
         - name: openclaw
-          image: "{{ .Values.openclaw.image.repository }}:{{ .Values.openclaw.image.tag }}"
+          image: "{{ .Values.openclaw.image.repository }}:{{ .Values.openclaw.image.tag | default (printf "%s-slim" .Chart.AppVersion) }}"
           imagePullPolicy: {{ .Values.openclaw.image.pullPolicy }}
           ports:
             - name: gateway
