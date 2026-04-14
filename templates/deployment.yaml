@@ -62,10 +62,11 @@ spec:
             - |-
               mkdir -p /home/node/.openclaw
               cp /config/*.json /home/node/.openclaw/
+              ls -la /home/node/.openclaw
               while read -rd $'\0' config; do
                 echo $config:
                 sed 's/^/  /' $config
-              done < <(find /home/node/.openclaw -mindepth 1 -maxdepth 1 -type f -name *.json)
+              done < <(find /home/node/.openclaw -name *.json -print0)
           {{- with .Values.openclaw.init.resources }}
           resources:
             {{- toYaml . |nindent 12 }}
