@@ -182,6 +182,9 @@ spec:
             - --https-address=:{{ .Values.oauthProxy.port }}
             - --tls-cert=/etc/tls/private/tls.crt
             - --tls-key=/etc/tls/private/tls.key
+            - --openshift-ca=/etc/pki/tls/cert.pem
+            - --openshift-ca=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+            - --openshift-ca=/etc/ocp-injected-certs/ca-bundle.crt
             - --cookie-secret-file=/etc/proxy/secrets/cookie-secret
             - --cookie-expire=24h0m
             - --cookie-refresh=1h
@@ -200,6 +203,9 @@ spec:
               readOnly: true
             - name: oauth-secret
               mountPath: /etc/proxy/secrets
+              readOnly: true
+            - mountPath: /etc/ocp-injected-certs
+              name: proxy-ca
               readOnly: true
           resources:
             {{- toYaml .Values.oauthProxy.resources | nindent 12 }}
@@ -241,6 +247,9 @@ spec:
           secret:
             secretName: {{ include "openclaw.fullname" . }}-oauth
             defaultMode: 420
+        - name: proxy-ca
+          configMap:
+            name: {{ include "openclaw.fullname" . }}-ocp-injected-certs
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
