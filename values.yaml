@@ -219,9 +219,8 @@ networkPolicy:
   allowWanEgress: true
   additionalIngress: []
   additionalEgress: []
-  # OVN-Kubernetes requires explicit CIDRs for API server access
-  # Service subnet for Kubernetes API DNAT (port 443)
-  serviceCidr: "172.30.0.0/16"
+  # DNS namespace for CoreDNS (openshift-dns for OpenShift, kube-system for upstream)
+  dnsNamespace: "openshift-dns"
   # Host subnet for kube-apiserver on host network (port 6443)
   # Set this to your OpenShift node network CIDR (e.g., "10.0.0.0/16")
   hostCidr: ""

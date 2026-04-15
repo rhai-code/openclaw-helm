@@ -22,47 +22,29 @@ spec:
       ports:
         - protocol: TCP
           port: {{ .Values.oauthProxy.port }}
-    # Allow from same namespace (pod-to-pod communication)
-    - from:
-        - podSelector: {}
-      ports:
-        - protocol: TCP
-          port: {{ .Values.openclaw.port }}
-        - protocol: TCP
-          port: {{ .Values.oauthProxy.port }}
-        {{- if .Values.clawsuite.enabled }}
-        - protocol: TCP
-          port: {{ .Values.clawsuite.port }}
-        {{- end }}
     # Allow additional custom ingress rules
     {{- with .Values.networkPolicy.additionalIngress }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
   egress:
-    # Allow DNS resolution to service network
     - to:
-        - ipBlock:
-            cidr: {{ .Values.networkPolicy.serviceCidr }}
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.networkPolicy.dnsNamespace }}
       ports:
         - protocol: UDP
           port: 53
-    # Allow intra-namespace communication
-    - to:
-        - podSelector: {}
-      ports:
         - protocol: TCP
-          port: {{ .Values.openclaw.port }}
+          port: 53
+        - protocol: UDP
+          port: 5353
         - protocol: TCP
-          port: {{ .Values.oauthProxy.port }}
-        {{- if .Values.clawsuite.enabled }}
-        - protocol: TCP
-          port: {{ .Values.clawsuite.port }}
-        {{- end }}
+          port: 5353
     # Allow access to Kubernetes API for OVN-Kubernetes
-    # Service subnet for DNAT (port 443)
     - to:
-        - ipBlock:
-            cidr: {{ .Values.networkPolicy.serviceCidr }}
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: default
       ports:
         - protocol: TCP
           port: 443
@@ -73,14 +55,6 @@ spec:
       ports:
         - protocol: TCP
           port: 6443
-    # Allow access to openshift-config-managed namespace (OAuth serving certs)
-    - to:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: openshift-config-managed
-      ports:
-        - protocol: TCP
-          port: 443
     # Allow WAN egress for OpenClaw API calls
     {{- if .Values.networkPolicy.allowWanEgress }}
     - to:
