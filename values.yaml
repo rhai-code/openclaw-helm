@@ -54,6 +54,9 @@ openclaw:
       port: 18789
       auth:
         mode: "token"
+      trustedProxies: ["127.0.0.1", "10.0.0.0/8", "172.16.0.0/12", "100.64.0.0/10"]
+      controlUi:
+        allowedOrigins: ["*"]
 
   # Example: Connect to vLLM-hosted OpenAI-compatible API
   # Uncomment and modify the following sections:
