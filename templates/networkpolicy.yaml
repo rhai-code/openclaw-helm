@@ -69,6 +69,13 @@ spec:
       ports:
         - protocol: TCP
           port: 443
+    # Allow access to Kubernetes API (OpenShift service network)
+    - to:
+        - ipBlock:
+            cidr: 172.30.0.0/16
+      ports:
+        - protocol: TCP
+          port: 443
     # Allow access to openshift-config-managed namespace (OAuth serving certs)
     - to:
         - namespaceSelector:
