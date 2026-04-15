@@ -286,7 +286,7 @@ openclaw:
 
 ### ServiceAccount
 
-The chart creates a ServiceAccount with **no RBAC bindings**. It has zero permissions within the cluster:
+The chart creates a ServiceAccount configured for OpenShift OAuth integration:
 
 ```yaml
 serviceAccount:
@@ -294,7 +294,10 @@ serviceAccount:
   automountServiceAccountToken: true  # Required for OpenShift OAuth proxy
 ```
 
-Note: The ServiceAccount token is mounted to enable OpenShift OAuth authentication, but no RBAC permissions are granted.
+The ServiceAccount is automatically annotated with:
+- `serviceaccounts.openshift.io/oauth-redirectreference.primary` - References the Route for OAuth redirect URI validation
+
+**RBAC Requirements:** The oauth-proxy requires read access to the `oauth-serving-cert` ConfigMap in the `openshift-config-managed` namespace, plus cluster-scoped permissions to create SubjectAccessReviews and TokenReviews. These permissions are automatically granted by the chart.
 
 ### Network Policy
 
