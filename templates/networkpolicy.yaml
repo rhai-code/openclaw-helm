@@ -60,19 +60,11 @@ spec:
         - protocol: TCP
           port: {{ .Values.clawsuite.port }}
         {{- end }}
-    # Allow access to Kubernetes API server (required for OpenShift OAuth)
+    # Allow access to Kubernetes API (default namespace) for OVN-Kubernetes
     - to:
-        - namespaceSelector: {}
-          podSelector:
+        - namespaceSelector:
             matchLabels:
-              component: apiserver
-      ports:
-        - protocol: TCP
-          port: 443
-    # Allow access to Kubernetes API server IP
-    - to:
-        - ipBlock:
-            cidr: 172.30.0.1/32
+              kubernetes.io/metadata.name: default
       ports:
         - protocol: TCP
           port: 443
