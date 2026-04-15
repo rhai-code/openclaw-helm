@@ -39,12 +39,10 @@ spec:
     {{- toYaml . | nindent 4 }}
     {{- end }}
   egress:
-    # Allow DNS resolution
+    # Allow DNS resolution to service network
     - to:
-        - namespaceSelector: {}
-          podSelector:
-            matchLabels:
-              k8s-app: kube-dns
+        - ipBlock:
+            cidr: {{ .Values.networkPolicy.serviceCidr }}
       ports:
         - protocol: UDP
           port: 53
