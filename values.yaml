@@ -140,6 +140,9 @@ clawsuite:
         cpu: "500m"
         memory: "512Mi"
 
+  # Allowed hosts for ClawSuite (comma-separated, empty allows all)
+  allowedHosts: ""
+
   resources:
     requests:
       cpu: "500m"

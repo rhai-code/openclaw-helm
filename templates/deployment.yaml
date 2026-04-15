@@ -149,6 +149,10 @@ spec:
               value: "production"
             - name: CLAWDBOT_GATEWAY_URL
               value: "ws://localhost:{{ .Values.openclaw.port }}"
+            {{- if .Values.clawsuite.allowedHosts }}
+            - name: CLAWSUITE_ALLOWED_HOSTS
+              value: {{ .Values.clawsuite.allowedHosts | quote }}
+            {{- end }}
             {{- with .Values.clawsuite.env }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
