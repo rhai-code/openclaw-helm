@@ -176,7 +176,7 @@ ephemeral:
   cache:
     sizeLimit: 1Gi
   home:
-    sizeLimit: 100Mi
+    sizeLimit: 10Gi
 
 networkPolicy:
   enabled: true
