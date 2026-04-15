@@ -104,6 +104,42 @@ clawsuite:
 
   port: 3000
 
+  # Expose ClawSuite via a separate service (not through oauth-proxy)
+  service:
+    enabled: true
+    type: ClusterIP
+    port: 3000
+    targetPort: 3000
+    annotations: {}
+
+  # Create a separate Route for ClawSuite with OAuth protection
+  route:
+    enabled: true
+    host: ""
+    path: /
+    tls:
+      termination: reencrypt
+      insecureEdgeTerminationPolicy: Redirect
+    annotations: {}
+    labels: {}
+
+  # OAuth Proxy for ClawSuite (separate from main OpenClaw OAuth, always enabled when clawsuite is enabled)
+  oauthProxy:
+    port: 9443
+    image:
+      repository: image-registry.openshift-image-registry.svc:5000/openshift/oauth-proxy
+      tag: "v4.4"
+      pullPolicy: IfNotPresent
+    cookieSecret: ""
+    sar: '{"namespace": "{{ .Release.Namespace }}", "resource": "services", "verb": "get"}'
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+
   resources:
     requests:
       cpu: "500m"

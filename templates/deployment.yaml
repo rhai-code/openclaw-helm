@@ -175,9 +175,6 @@ spec:
             - --provider=openshift
             - --openshift-service-account={{ include "openclaw.serviceAccountName" . }}
             - --upstream=http://localhost:{{ .Values.openclaw.port }}
-            {{- if .Values.clawsuite.enabled }}
-            - --upstream=http://localhost:{{ .Values.clawsuite.port }}/clawsuite
-            {{- end }}
             - --http-address=
             - --https-address=:{{ .Values.oauthProxy.port }}
             - --tls-cert=/etc/tls/private/tls.crt
@@ -217,6 +214,59 @@ spec:
             readOnlyRootFilesystem: true
             runAsNonRoot: true
 
+        {{- if .Values.clawsuite.enabled }}
+        # OpenShift OAuth Proxy Sidecar for ClawSuite
+        - name: clawsuite-oauth-proxy
+          image: "{{ .Values.clawsuite.oauthProxy.image.repository }}:{{ .Values.clawsuite.oauthProxy.image.tag }}"
+          imagePullPolicy: {{ .Values.clawsuite.oauthProxy.image.pullPolicy }}
+          ports:
+            - name: clawsuite-oauth
+              containerPort: {{ .Values.clawsuite.oauthProxy.port }}
+              protocol: TCP
+          args:
+            - --provider=openshift
+            - --openshift-service-account={{ include "openclaw.serviceAccountName" . }}
+            - --upstream=http://localhost:{{ .Values.clawsuite.port }}
+            - --http-address=
+            - --https-address=:{{ .Values.clawsuite.oauthProxy.port }}
+            - --tls-cert=/etc/tls/private/tls.crt
+            - --tls-key=/etc/tls/private/tls.key
+            - --openshift-ca=/etc/pki/tls/cert.pem
+            - --openshift-ca=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+            - --openshift-ca=/etc/ocp-injected-certs/ca-bundle.crt
+            - --cookie-secret-file=/etc/proxy/secrets/cookie-secret
+            - --cookie-expire=24h0m
+            - --cookie-refresh=1h
+            - --pass-access-token=true
+            - --pass-user-headers=true
+            - --request-logging=false
+            - '--openshift-sar={{ tpl .Values.clawsuite.oauthProxy.sar . }}'
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          volumeMounts:
+            - name: clawsuite-oauth-tls
+              mountPath: /etc/tls/private
+              readOnly: true
+            - name: oauth-secret
+              mountPath: /etc/proxy/secrets
+              readOnly: true
+            - mountPath: /etc/ocp-injected-certs
+              name: proxy-ca
+              readOnly: true
+          resources:
+            {{- toYaml .Values.clawsuite.oauthProxy.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+        {{- end }}
+
       volumes:
         - name: config
           configMap:
@@ -243,6 +293,12 @@ spec:
           secret:
             secretName: {{ include "openclaw.fullname" . }}-tls
             defaultMode: 420
+        {{- if .Values.clawsuite.enabled }}
+        - name: clawsuite-oauth-tls
+          secret:
+            secretName: {{ include "openclaw.fullname" . }}-clawsuite-tls
+            defaultMode: 420
+        {{- end }}
         - name: oauth-secret
           secret:
             secretName: {{ include "openclaw.fullname" . }}-oauth
