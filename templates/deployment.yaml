@@ -53,8 +53,8 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /config
-            - name: home
-              mountPath: /home/node
+            - name: data
+              mountPath: /home/node/.openclaw
           command:
             - /bin/sh
           args:
