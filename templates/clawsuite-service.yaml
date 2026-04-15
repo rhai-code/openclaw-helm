@@ -15,7 +15,7 @@ metadata:
 spec:
   type: {{ .Values.clawsuite.service.type }}
   ports:
-    - port: {{ .Values.clawsuite.service.port }}
+    - port: {{ .Values.clawsuite.oauthProxy.port }}
       targetPort: {{ .Values.clawsuite.oauthProxy.port }}
       protocol: TCP
       name: https

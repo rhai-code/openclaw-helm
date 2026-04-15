@@ -60,14 +60,21 @@ spec:
         - protocol: TCP
           port: {{ .Values.clawsuite.port }}
         {{- end }}
-    # Allow access to Kubernetes API (default namespace) for OVN-Kubernetes
+    # Allow access to Kubernetes API for OVN-Kubernetes
+    # Service subnet for DNAT (port 443)
     - to:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: default
+        - ipBlock:
+            cidr: {{ .Values.networkPolicy.serviceCidr }}
       ports:
         - protocol: TCP
           port: 443
+    # Host subnet for kube-apiserver on host network (port 6443)
+    - to:
+        - ipBlock:
+            cidr: {{ required "You need to add .networkPolicy.hostCidr to values for NetworkPolicy to work, otherwise disable it." .Values.networkPolicy.hostCidr }}
+      ports:
+        - protocol: TCP
+          port: 6443
     # Allow access to openshift-config-managed namespace (OAuth serving certs)
     - to:
         - namespaceSelector:
