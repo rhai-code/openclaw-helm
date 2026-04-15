@@ -182,7 +182,7 @@ spec:
             - --https-address=:{{ .Values.oauthProxy.port }}
             - --tls-cert=/etc/tls/private/tls.crt
             - --tls-key=/etc/tls/private/tls.key
-            - --cookie-secret-file=/etc/proxy/secrets/session_secret
+            - --cookie-secret-file=/etc/proxy/secrets/cookie-secret
             - --cookie-expire=24h0m
             - --cookie-refresh=1h
             - --pass-access-token=true

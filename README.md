@@ -291,8 +291,10 @@ The chart creates a ServiceAccount with **no RBAC bindings**. It has zero permis
 ```yaml
 serviceAccount:
   create: true
-  automountServiceAccountToken: false
+  automountServiceAccountToken: true  # Required for OpenShift OAuth proxy
 ```
+
+Note: The ServiceAccount token is mounted to enable OpenShift OAuth authentication, but no RBAC permissions are granted.
 
 ### Network Policy
 

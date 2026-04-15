@@ -163,7 +163,7 @@ serviceAccount:
   create: true
   name: ""
   annotations: {}
-  automountServiceAccountToken: false
+  automountServiceAccountToken: true
 
 securityContext:
   runAsNonRoot: true
