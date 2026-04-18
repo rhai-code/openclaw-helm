@@ -26,7 +26,7 @@ spec:
   port:
     targetPort: {{ .Values.clawsuite.oauthProxy.port }}
   tls:
-    termination: {{ .Values.clawsuite.route.tls.termination }}
-    insecureEdgeTerminationPolicy: {{ .Values.clawsuite.route.tls.insecureEdgeTerminationPolicy }}
+    termination: reencrypt
+    insecureEdgeTerminationPolicy: Redirect
   wildcardPolicy: None
 {{- end }}
