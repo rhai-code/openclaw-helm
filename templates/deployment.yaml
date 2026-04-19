@@ -85,6 +85,11 @@ spec:
               value: "production"
             - name: HOME
               value: "/home/node"
+            - name: OPENCLAW_GATEWAY_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "openclaw.fullname" . }}-oauth
+                  key: gateway-token
             {{- with .Values.openclaw.env }}
             {{- toYaml . | nindent 12 }}
             {{- end }}

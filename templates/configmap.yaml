@@ -14,8 +14,7 @@ data:
 {{- if not (hasKey $config.gateway "auth") }}
 {{- $_ := set $config.gateway "auth" dict }}
 {{- end }}
-{{- $token := include "openclaw.gatewayToken" . }}
-{{- $_ := set $config.gateway.auth "token" $token }}
+{{- $_ := set $config.gateway.auth "token" "${OPENCLAW_GATEWAY_TOKEN}" }}
 {{- toPrettyJson $config | nindent 4 }}
 ---
 apiVersion: v1
