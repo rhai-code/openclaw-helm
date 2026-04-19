@@ -67,6 +67,21 @@ RUN npm config set legacy-peer-deps true && \
     npm install && \
     npm install http-proxy
 
+# Bypass setup wizard since Helm chart wires everything natively
+RUN node -e " \
+  const fs = require('fs'); \
+  let code = fs.readFileSync('src/routes/index.tsx', 'utf8'); \
+  code = code.replace( \
+    \"if (!configured) {\\n        throw redirect({ to: '/wizard' as string, replace: true })\\n      }\", \
+    \"if (!configured) {\\n        localStorage.setItem('clawsuite-gateway-configured', 'true');\\n      }\" \
+  ); \
+  code = code.replace( \
+    \"// SSR: always redirect to wizard (safe default — client will re-check)\\n    throw redirect({ to: '/wizard' as string, replace: true })\", \
+    \"// SSR: Bypass wizard\\n    throw redirect({ to: '/dashboard' as string, replace: true })\" \
+  ); \
+  fs.writeFileSync('src/routes/index.tsx', code); \
+"
+
 RUN npm run build
 
 # Generate patched server-entry.js with OAuth trust and Gateway Proxy middleware
