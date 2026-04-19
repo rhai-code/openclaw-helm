@@ -80,6 +80,17 @@ Create the OAuth cookie secret
 {{- end }}
 
 {{/*
+Gateway Auth Token (Persistent)
+*/}}
+{{- define "openclaw.gatewayToken" -}}
+{{- if and .Values.openclaw.config.gateway.auth (hasKey .Values.openclaw.config.gateway.auth "token") }}
+{{- .Values.openclaw.config.gateway.auth.token }}
+{{- else }}
+{{- randAlphaNum 32 }}
+{{- end }}
+{{- end }}
+
+{{/*
 ClawSuite image reference
 */}}
 {{- define "openclaw.clawsuite.image" -}}

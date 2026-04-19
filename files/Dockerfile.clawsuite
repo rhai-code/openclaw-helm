@@ -64,31 +64,39 @@ EOF
 
 # Use legacy peer deps to match upstream behavior
 RUN npm config set legacy-peer-deps true && \
-    npm install
+    npm install && \
+    npm install http-proxy
 
 RUN npm run build
 
-# Generate patched server-entry.js with OAuth trust middleware
-# This allows ClawSuite to work behind OpenShift OAuth proxy
-RUN cat <<'EOF' > oauth-trust.patch && git apply oauth-trust.patch
---- server-entry.js
-+++ server-entry.js
-@@ -72,6 +72,14 @@
- }
- 
- const httpServer = createServer(async (req, res) => {
-+  // OAuth Proxy Trust Middleware - Added by Helm chart
-+  // Allows ClawSuite to work behind OpenShift OAuth proxy
-+  const forwardedUser = req.headers['x-forwarded-user'] || req.headers['x-forwarded-preferred-username'];
-+  if (forwardedUser) {
-+    req.user = forwardedUser;
-+    req.isAuthenticated = () => true;
-+  }
-+
-   // Try static files first (client assets)
-   if (req.method === 'GET' || req.method === 'HEAD') {
-     const served = await tryServeStatic(req, res)
-EOF
+# Generate patched server-entry.js with OAuth trust and Gateway Proxy middleware
+# This allows ClawSuite to work behind OpenShift OAuth proxy and proxies websockets natively
+RUN node -e " \
+  const fs = require('fs'); \
+  let code = fs.readFileSync('server-entry.js', 'utf8'); \
+  \
+  const imports = 'import httpProxy from \"http-proxy\";\n' + \
+                  'const proxy = httpProxy.createProxyServer({ target: process.env.CLAWDBOT_GATEWAY_URL || \"ws://127.0.0.1:18789\", ws: true, changeOrigin: true });\n' + \
+                  'proxy.on(\"error\", (err) => console.error(\"Proxy error:\", err));\n\n'; \
+  code = imports + code; \
+  \
+  const proxyMiddleware = '  // Gateway Proxy and OAuth Middleware\n' + \
+                          '  if (req.url.startsWith(\"/api/gateway-proxy\")) { req.url = req.url.replace(\"/api/gateway-proxy\", \"\") || \"/\"; return proxy.web(req, res); }\n' + \
+                          '  if (req.url.startsWith(\"/gateway-ui\")) { req.url = req.url.replace(\"/gateway-ui\", \"\") || \"/\"; return proxy.web(req, res); }\n' + \
+                          '  const forwardedUser = req.headers[\"x-forwarded-user\"] || req.headers[\"x-forwarded-preferred-username\"];\n' + \
+                          '  if (forwardedUser) { req.user = forwardedUser; req.isAuthenticated = () => true; }\n'; \
+  code = code.replace('const httpServer = createServer(async (req, res) => {', 'const httpServer = createServer(async (req, res) => {\n' + proxyMiddleware); \
+  \
+  const wsProxy = 'httpServer.on(\"upgrade\", (req, socket, head) => {\n' + \
+                  '  if (req.url.startsWith(\"/ws-gateway\")) {\n' + \
+                  '    req.url = req.url.replace(\"/ws-gateway\", \"\") || \"/\";\n' + \
+                  '    proxy.ws(req, socket, head);\n' + \
+                  '  }\n' + \
+                  '});\n\n'; \
+  code = code.replace('httpServer.listen(port', wsProxy + 'httpServer.listen(port'); \
+  \
+  fs.writeFileSync('server-entry.js', code); \
+"
 
 FROM ${BASE} AS skills
 WORKDIR /tmp

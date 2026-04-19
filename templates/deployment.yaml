@@ -148,7 +148,12 @@ spec:
             - name: NODE_ENV
               value: "production"
             - name: CLAWDBOT_GATEWAY_URL
-              value: "ws://localhost:{{ .Values.openclaw.port }}"
+              value: "ws://127.0.0.1:{{ .Values.openclaw.port }}"
+            - name: CLAWDBOT_GATEWAY_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "openclaw.fullname" . }}-oauth
+                  key: gateway-token
             {{- if .Values.clawsuite.allowedHosts }}
             - name: CLAWSUITE_ALLOWED_HOSTS
               value: {{ .Values.clawsuite.allowedHosts | quote }}
