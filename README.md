@@ -23,10 +23,10 @@ A Helm chart for deploying [OpenClaw](https://openclaw.ai) AI Gateway on OpenShi
 
 ```bash
 # Install specific version from GitHub Container Registry
-helm install openclaw oci://ghcr.io/rhai-code/openclaw --version 1.0.4
+helm install openclaw oci://ghcr.io/rhai-code/openclaw --version 1.1.0
 
 # Or with custom values
-helm install openclaw oci://ghcr.io/rhai-code/openclaw --version 1.0.4 -f custom-values.yaml
+helm install openclaw oci://ghcr.io/rhai-code/openclaw --version 1.1.0 -f custom-values.yaml
 ```
 
 ### Install from Local Chart
@@ -50,7 +50,7 @@ helm install openclaw . -f custom-values.yaml
 oc new-project openclaw
 
 # Install from OCI registry
-helm install openclaw oci://ghcr.io/rhai-code/openclaw --version 1.0.4 \
+helm install openclaw oci://ghcr.io/rhai-code/openclaw --version 1.1.0 \
   --set route.host=openclaw.apps.your-cluster.com \
   --set openclaw.config.agent.model="openai/gpt-4o"
 
@@ -291,10 +291,11 @@ The chart creates a ServiceAccount configured for OpenShift OAuth integration:
 ```yaml
 serviceAccount:
   create: true
-  automountServiceAccountToken: true  # Required for OpenShift OAuth proxy
+  automountServiceAccountToken: true # Required for OpenShift OAuth proxy
 ```
 
 The ServiceAccount is automatically annotated with:
+
 - `serviceaccounts.openshift.io/oauth-redirectreference.primary` - References the Route for OAuth redirect URI validation
 
 **RBAC Requirements:** The oauth-proxy requires read access to the `oauth-serving-cert` ConfigMap in the `openshift-config-managed` namespace, plus cluster-scoped permissions to create SubjectAccessReviews and TokenReviews. These permissions are automatically granted by the chart.
@@ -364,13 +365,13 @@ oc logs -n openclaw build/{{ include "openclaw.fullname" . }}-clawsuite-1
 
 ```bash
 # Upgrade from OCI registry
-helm upgrade openclaw oci://ghcr.io/rhai-code/openclaw --version 1.0.4
+helm upgrade openclaw oci://ghcr.io/rhai-code/openclaw --version 1.1.0
 
 # Upgrade from local chart
 helm upgrade openclaw .
 
 # Upgrade with new values
-helm upgrade openclaw oci://ghcr.io/rhai-code/openclaw --version 1.0.4 -f new-values.yaml
+helm upgrade openclaw oci://ghcr.io/rhai-code/openclaw --version 1.1.0 -f new-values.yaml
 ```
 
 ## Uninstallation
