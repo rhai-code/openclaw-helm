@@ -21,8 +21,8 @@ jobs:
       - name: Lint chart
         run: helm lint .
 
-      - name: Test template rendering
-        run: helm template openclaw .
+      - name: Test template rendering (requires node network override)
+        run: helm template openclaw . --set networkPolicy.hostCidr=10.0.0.0/16
 
       - name: Extract chart version
         id: chart_version
