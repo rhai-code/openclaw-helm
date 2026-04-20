@@ -52,7 +52,7 @@ oc new-project openclaw
 # Install from OCI registry
 helm install openclaw oci://ghcr.io/rhai-code/openclaw --version 1.1.0 \
   --set route.host=openclaw.apps.your-cluster.com \
-  --set openclaw.config.agent.model="openai/gpt-4o"
+  --set openclaw.config.agents.defaults.model.primary="openai/gpt-4o"
 
 # Wait for the deployment to be ready
 oc wait --for=condition=available --timeout=300s deployment/openclaw
@@ -76,8 +76,10 @@ Example `custom-values.yaml`:
 ```yaml
 openclaw:
   config:
-    agent:
-      model: "openai/gpt-4o"
+    agents:
+      defaults:
+        model:
+          primary: "openai/gpt-4o"
     gateway:
       bind: "lan"
       port: 18789
@@ -94,14 +96,6 @@ openclaw:
         secretKeyRef:
           name: openclaw-secrets
           key: openai-api-key
-
-clawsuite:
-  env:
-    - name: CLAWDBOT_GATEWAY_TOKEN
-      valueFrom:
-        secretKeyRef:
-          name: openclaw-secrets
-          key: gateway-token
 ```
 
 ### OAuth SAR Configuration
@@ -137,44 +131,48 @@ To connect OpenClaw to a vLLM-hosted or other OpenAI-compatible API:
 ```yaml
 # 1. Define secrets (creates Kubernetes Secrets)
 secrets:
-  vllm-secrets:
-    api-key: "dummy-key" # vLLM accepts any key
-    gateway-token: "secure-random-token"
+  vllm-api-key:
+    api-key: "dummy-key" # or your actual key if required
 
 # 2. Configure OpenClaw to use vLLM
 openclaw:
   config:
-    agent:
-      # Use the model name as served by vLLM
-      model: "openai/meta-llama/Llama-2-70b-chat-hf"
+    agents:
+      defaults:
+        model:
+          primary: vllm/kimi-k2-5
+    models:
+      providers:
+        vllm:
+          baseUrl: "http://vllm.your-namespace.svc.cluster.local:8000/v1" # Point to your vLLM endpoint
+          apiKey: "${VLLM_API_KEY}"
+          api: openai-completions
+          models:
+            - id: kimi-k2-5
+              name: Kimi K2.5
+              reasoning: true
+              input: ["text"]
+              cost:
+                input: 0
+                output: 0
+                cacheRead: 0
+                cacheWrite: 0
+              contextWindow: 262144
+              maxTokens: 65536
     gateway:
       bind: "lan"
       port: 18789
       auth:
         mode: "token"
-        token: "secure-random-token"
+        token: "your-secure-token-here" # Chart automatically shares this with ClawSuite
 
   env:
-    # Point to vLLM's OpenAI-compatible endpoint
-    - name: OPENAI_BASE_URL
-      value: "http://vllm.your-namespace.svc.cluster.local:8000/v1"
     # Reference the secret (secure - not in deployment manifest)
-    - name: OPENAI_API_KEY
+    - name: VLLM_API_KEY
       valueFrom:
         secretKeyRef:
-          name: vllm-secrets
+          name: vllm-api-key
           key: api-key
-
-# 3. Configure ClawSuite to use the same secrets
-clawsuite:
-  env:
-    - name: CLAWDBOT_GATEWAY_URL
-      value: "ws://localhost:18789"
-    - name: CLAWDBOT_GATEWAY_TOKEN
-      valueFrom:
-        secretKeyRef:
-          name: vllm-secrets
-          key: gateway-token
 ```
 
 **Note:** If using External Secrets Operator or other external secret management, skip the `secrets:` section and ensure the referenced secrets exist before deployment.
