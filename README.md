@@ -81,7 +81,6 @@ openclaw:
         model:
           primary: "openai/gpt-4o"
     gateway:
-      bind: "lan"
       port: 18789
       auth:
         mode: "token"
@@ -90,12 +89,12 @@ openclaw:
       telegram:
         botToken: "${TELEGRAM_BOT_TOKEN}"
 
-  env:
-    - name: OPENAI_API_KEY
-      valueFrom:
-        secretKeyRef:
-          name: openclaw-secrets
-          key: openai-api-key
+  # env:
+  #   - name: OPENAI_API_KEY
+  #     valueFrom:
+  #       secretKeyRef:
+  #         name: your-secret-name
+  #         key: openai-api-key
 ```
 
 ### OAuth SAR Configuration
@@ -104,13 +103,16 @@ Control who can access the web UI via Subject Access Review:
 
 ```yaml
 oauthProxy:
-  # Allow any authenticated user
-  sar: '{"resource": "users", "verb": "get"}'
+  # Default: requires access to read services in the deployment namespace
+  sar: '{"namespace": "{{ .Release.Namespace }}", "resource": "services", "verb": "get"}'
 
-  # Require specific group
+  # Example: Allow any authenticated user
+  # sar: '{"resource": "users", "verb": "get"}'
+
+  # Example: Require specific group
   # sar: '{"resource": "groups", "name": "openclaw-users", "verb": "get"}'
 
-  # Cluster admin only
+  # Example: Cluster admin only
   # sar: '{"resource": "clusterrolebindings", "verb": "list"}'
 ```
 
@@ -140,7 +142,7 @@ openclaw:
     agents:
       defaults:
         model:
-          primary: vllm/kimi-k2-5
+          primary: vllm/model-id-goes-here
     models:
       providers:
         vllm:
@@ -148,8 +150,8 @@ openclaw:
           apiKey: "${VLLM_API_KEY}"
           api: openai-completions
           models:
-            - id: kimi-k2-5
-              name: Kimi K2.5
+            - id: model-id-goes-here
+              name: Your open-weight model running in vLLM
               reasoning: true
               input: ["text"]
               cost:
@@ -160,8 +162,6 @@ openclaw:
               contextWindow: 262144
               maxTokens: 65536
     gateway:
-      bind: "lan"
-      port: 18789
       auth:
         mode: "token"
         token: "your-secure-token-here" # Chart automatically shares this with ClawSuite
@@ -179,7 +179,7 @@ openclaw:
 
 ### ClawSuite Build Configuration
 
-When ClawSuite is enabled without a pre-built image, a BuildConfig is created:
+When ClawSuite is enabled without a pre-built image, a BuildConfig is created. This BuildConfig includes some patches to make ClawSuite play nice in our OAuth-proxied environment. You can change this behavior a bit:
 
 ```yaml
 clawsuite:
@@ -192,9 +192,7 @@ clawsuite:
   build:
     git:
       repository: https://github.com/outsourc-e/clawsuite.git
-      ref: main # or a specific tag/commit
-    triggers:
-      imageChange: true # Rebuild when base image updates
+      ref: main # or a specific tag/commit, defaults to tagged release
 ```
 
 ### Resource Limits
@@ -225,14 +223,14 @@ openclaw:
 
 ### OpenClaw Configuration
 
-| Parameter                   | Description           | Default                     |
-| --------------------------- | --------------------- | --------------------------- |
-| `openclaw.image.repository` | OpenClaw image        | `ghcr.io/openclaw/openclaw` |
-| `openclaw.image.tag`        | Image tag             | `2026.4.12-slim`            |
-| `openclaw.port`             | WebSocket port        | `18789`                     |
-| `openclaw.resources`        | Resource limits       | See values.yaml             |
-| `openclaw.config`           | openclaw.json content | Minimal default             |
-| `openclaw.env`              | Extra env vars        | `[]`                        |
+| Parameter                   | Description           | Default                                 |
+| --------------------------- | --------------------- | --------------------------------------- |
+| `openclaw.image.repository` | OpenClaw image        | `ghcr.io/openclaw/openclaw`             |
+| `openclaw.image.tag`        | Image tag             | `""` (defaults to AppVersion + `-slim`) |
+| `openclaw.port`             | WebSocket port        | `18789`                                 |
+| `openclaw.resources`        | Resource limits       | See values.yaml                         |
+| `openclaw.config`           | openclaw.json content | Minimal default                         |
+| `openclaw.env`              | Extra env vars        | `[]`                                    |
 
 ### ClawSuite Configuration
 
@@ -241,17 +239,23 @@ openclaw:
 | `clawsuite.enabled`              | Enable ClawSuite           | `true`                                        |
 | `clawsuite.image.repository`     | Pre-built image (optional) | `""`                                          |
 | `clawsuite.build.git.repository` | Source git URL             | `https://github.com/outsourc-e/clawsuite.git` |
-| `clawsuite.build.git.ref`        | Git ref to build           | `main`                                        |
+| `clawsuite.build.git.ref`        | Git ref to build           | `v4.0.0`                                      |
+| `clawsuite.port`                 | ClawSuite port             | `3000`                                        |
+| `clawsuite.allowedHosts`         | Allowed hosts              | `""` (allows all)                             |
+| `clawsuite.service.enabled`      | Enable separate service    | `true`                                        |
+| `clawsuite.route.enabled`        | Enable separate route      | `true`                                        |
+| `clawsuite.oauthProxy.sar`       | Subject Access Review      | `'{"namespace": "{{ .Release.Namespace }}", "resource": "services", "verb": "get"}'` |
 | `clawsuite.resources`            | Resource limits            | See values.yaml                               |
+| `clawsuite.env`                  | Extra env vars             | `[]`                                          |
 
 ### OAuth Proxy Configuration
 
-| Parameter                     | Description                             | Default                                                                  |
-| ----------------------------- | --------------------------------------- | ------------------------------------------------------------------------ |
-| `oauthProxy.image.repository` | OAuth proxy image                       | `image-registry.openshift-image-registry.svc:5000/openshift/oauth-proxy` |
-| `oauthProxy.image.tag`        | Image tag                               | `v4.4`                                                                   |
-| `oauthProxy.sar`              | Subject Access Review                   | `'{"resource": "users", "verb": "get"}'`                                 |
-| `oauthProxy.cookieSecret`     | Cookie secret (auto-generated if empty) | `""`                                                                     |
+| Parameter                     | Description                             | Default                                                                              |
+| ----------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------ |
+| `oauthProxy.image.repository` | OAuth proxy image                       | `image-registry.openshift-image-registry.svc:5000/openshift/oauth-proxy`             |
+| `oauthProxy.image.tag`        | Image tag                               | `v4.4`                                                                               |
+| `oauthProxy.sar`              | Subject Access Review                   | `'{"namespace": "{{ .Release.Namespace }}", "resource": "services", "verb": "get"}'` |
+| `oauthProxy.cookieSecret`     | Cookie secret (auto-generated if empty) | `""`                                                                                 |
 
 ### Persistence
 
