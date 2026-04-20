@@ -1,9 +1,10 @@
 apiVersion: v2
 name: openclaw
-description: A Helm chart for OpenClaw AI Gateway with optional ClawSuite sidecar on OpenShift
+description: A Helm chart for OpenClaw AI Gateway with optional ClawSuite
+  sidecar on OpenShift
 type: application
-version: 1.0.4
-appVersion: "2026.4.12"
+version: 1.1.0
+appVersion: "2026.4.19"
 keywords:
   - openclaw
   - ai
