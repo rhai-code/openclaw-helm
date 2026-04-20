@@ -1,6 +1,7 @@
 # OpenClaw Helm Chart
 
-A Helm chart for deploying [OpenClaw](https://openclaw.ai) AI Gateway on OpenShift with optional [ClawSuite](https://github.com/outsourc-e/clawsuite) sidecar.
+A Helm chart for deploying [OpenClaw](https://openclaw.ai) AI Gateway on OpenShift with optional
+[ClawSuite](https://github.com/outsourc-e/clawsuite) sidecar.
 
 ## Features
 
@@ -175,11 +176,13 @@ openclaw:
           key: api-key
 ```
 
-**Note:** If using External Secrets Operator or other external secret management, skip the `secrets:` section and ensure the referenced secrets exist before deployment.
+**Note:** If using External Secrets Operator or other external secret management, skip the `secrets:` section and ensure
+the referenced secrets exist before deployment.
 
 ### ClawSuite Build Configuration
 
-When ClawSuite is enabled without a pre-built image, a BuildConfig is created. This BuildConfig includes some patches to make ClawSuite play nice in our OAuth-proxied environment. You can change this behavior a bit:
+When ClawSuite is enabled without a pre-built image, a BuildConfig is created. This BuildConfig includes some patches to
+make ClawSuite play nice in our OAuth-proxied environment. You can change this behavior a bit:
 
 ```yaml
 clawsuite:
@@ -234,19 +237,19 @@ openclaw:
 
 ### ClawSuite Configuration
 
-| Parameter                        | Description                | Default                                       |
-| -------------------------------- | -------------------------- | --------------------------------------------- |
-| `clawsuite.enabled`              | Enable ClawSuite           | `true`                                        |
-| `clawsuite.image.repository`     | Pre-built image (optional) | `""`                                          |
-| `clawsuite.build.git.repository` | Source git URL             | `https://github.com/outsourc-e/clawsuite.git` |
-| `clawsuite.build.git.ref`        | Git ref to build           | `v4.0.0`                                      |
-| `clawsuite.port`                 | ClawSuite port             | `3000`                                        |
-| `clawsuite.allowedHosts`         | Allowed hosts              | `""` (allows all)                             |
-| `clawsuite.service.enabled`      | Enable separate service    | `true`                                        |
-| `clawsuite.route.enabled`        | Enable separate route      | `true`                                        |
+| Parameter                        | Description                | Default                                                                              |
+| -------------------------------- | -------------------------- | ------------------------------------------------------------------------------------ |
+| `clawsuite.enabled`              | Enable ClawSuite           | `true`                                                                               |
+| `clawsuite.image.repository`     | Pre-built image (optional) | `""`                                                                                 |
+| `clawsuite.build.git.repository` | Source git URL             | `https://github.com/outsourc-e/clawsuite.git`                                        |
+| `clawsuite.build.git.ref`        | Git ref to build           | `v4.0.0`                                                                             |
+| `clawsuite.port`                 | ClawSuite port             | `3000`                                                                               |
+| `clawsuite.allowedHosts`         | Allowed hosts              | `""` (allows all)                                                                    |
+| `clawsuite.service.enabled`      | Enable separate service    | `true`                                                                               |
+| `clawsuite.route.enabled`        | Enable separate route      | `true`                                                                               |
 | `clawsuite.oauthProxy.sar`       | Subject Access Review      | `'{"namespace": "{{ .Release.Namespace }}", "resource": "services", "verb": "get"}'` |
-| `clawsuite.resources`            | Resource limits            | See values.yaml                               |
-| `clawsuite.env`                  | Extra env vars             | `[]`                                          |
+| `clawsuite.resources`            | Resource limits            | See values.yaml                                                                      |
+| `clawsuite.env`                  | Extra env vars             | `[]`                                                                                 |
 
 ### OAuth Proxy Configuration
 
@@ -298,9 +301,12 @@ serviceAccount:
 
 The ServiceAccount is automatically annotated with:
 
-- `serviceaccounts.openshift.io/oauth-redirectreference.primary` - References the Route for OAuth redirect URI validation
+- `serviceaccounts.openshift.io/oauth-redirectreference.primary` - References the Route for OAuth redirect URI
+  validation
 
-**RBAC Requirements:** The oauth-proxy requires read access to the `oauth-serving-cert` ConfigMap in the `openshift-config-managed` namespace, plus cluster-scoped permissions to create SubjectAccessReviews and TokenReviews. These permissions are automatically granted by the chart.
+**RBAC Requirements:** The oauth-proxy requires read access to the `oauth-serving-cert` ConfigMap in the
+`openshift-config-managed` namespace, plus cluster-scoped permissions to create SubjectAccessReviews and TokenReviews.
+These permissions are automatically granted by the chart.
 
 ### Network Policy
 
