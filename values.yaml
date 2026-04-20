@@ -5,8 +5,9 @@
 # These can be referenced by environment variables using valueFrom.secretKeyRef
 # IMPORTANT: Do NOT commit real secret values to git! Use --set or --values-file
 secrets: {}
-  # openclaw-secrets:
+  # maas:
   #   openai-api-key: "sk-your-key-here"
+  # openclaw-secrets:
   #   gateway-token: "secure-random-token"
 
 replicaCount: 1
@@ -15,6 +16,57 @@ strategy:
   type: Recreate
 
 openclaw:
+  # Example: Connect to vLLM-hosted OpenAI-compatible API
+  # Modify the config and env below to include the following:
+  #
+  # config:
+  #   agents:
+  #     defaults:
+  #       model:
+  #         primary: vllm/kimi-k2-5
+  #   models:
+  #     providers:
+  #       vllm:
+  #         baseUrl: https://maas.apps.ocp.cloud.rhai-tmm.dev/kimi-k25/kimi-k2-5/v1
+  #         apiKey: "${VLLM_API_KEY}"
+  #         api: openai-completions
+  #         models:
+  #           - id: kimi-k2-5
+  #             name: Kimi K2.5
+  #             reasoning: true
+  #             input: ["text"]
+  #             cost:
+  #               input: 0
+  #               output: 0
+  #               cacheRead: 0
+  #               cacheWrite: 0
+  #             contextWindow: 262144
+  #             maxTokens: 65536
+  #
+  # env:
+  #   - name: VLLM_API_KEY
+  #     valueFrom:
+  #       secretKeyRef:
+  #         name: maas
+  #         key: openai-api-key
+  #
+  # The full configuration is templated from the below objects.
+  # Refer to: https://docs.openclaw.ai/gateway/configuration
+  config:
+    agents:
+      defaults:
+        workspace: /workspace
+    gateway:
+      bind: "0.0.0.0"
+      port: 18789
+      auth:
+        mode: "token"
+      trustedProxies: ["127.0.0.1", "10.0.0.0/8", "172.16.0.0/12", "100.64.0.0/10"]
+      controlUi:
+        allowedOrigins: ["*"]
+
+  env: []
+
   image:
     repository: ghcr.io/openclaw/openclaw
     tag: ""
@@ -44,33 +96,6 @@ openclaw:
       cpu: "4"
       memory: "8Gi"
 
-  # Refer to: https://docs.openclaw.ai/gateway/configuration
-  config:
-    agents:
-      defaults:
-        workspace: /workspace
-    gateway:
-      bind: "0.0.0.0"
-      port: 18789
-      auth:
-        mode: "token"
-      trustedProxies: ["127.0.0.1", "10.0.0.0/8", "172.16.0.0/12", "100.64.0.0/10"]
-      controlUi:
-        allowedOrigins: ["*"]
-
-  # Example: Connect to vLLM-hosted OpenAI-compatible API
-  # Uncomment and modify the following sections:
-  #
-  # env:
-  #   - name: OPENAI_BASE_URL
-  #     value: "http://vllm.your-namespace.svc.cluster.local:8000/v1"
-  #   - name: OPENAI_API_KEY
-  #     valueFrom:
-  #       secretKeyRef:
-  #         name: vllm-secrets
-  #         key: api-key
-  env: []
-
   livenessProbe:
     enabled: true
     initialDelaySeconds: 30
@@ -87,6 +112,9 @@ openclaw:
 
 clawsuite:
   enabled: true
+
+  # Allowed hosts for ClawSuite (comma-separated, empty allows all)
+  allowedHosts: ""
 
   image:
     repository: ""
@@ -131,7 +159,8 @@ clawsuite:
       tag: "v4.4"
       pullPolicy: IfNotPresent
     cookieSecret: ""
-    sar: '{"namespace": "{{ .Release.Namespace }}", "resource": "services", "verb": "get"}'
+    sar: '{"namespace": "{{ .Release.Namespace }}", "resource": "services", "verb":
+      "get"}'
     resources:
       requests:
         cpu: "100m"
@@ -139,9 +168,6 @@ clawsuite:
       limits:
         cpu: "500m"
         memory: "512Mi"
-
-  # Allowed hosts for ClawSuite (comma-separated, empty allows all)
-  allowedHosts: ""
 
   resources:
     requests:
@@ -175,7 +201,8 @@ oauthProxy:
   #   Any authenticated user: '{"resource": "users", "verb": "get"}'
   #   Specific group: '{"resource": "groups", "name": "openclaw-users", "verb": "get"}'
   #   Cluster admin only: '{"resource": "clusterrolebindings", "verb": "list"}'
-  sar: '{"namespace": "{{ .Release.Namespace }}", "resource": "services", "verb": "get"}'
+  sar: '{"namespace": "{{ .Release.Namespace }}", "resource": "services", "verb":
+    "get"}'
 
   resources:
     requests:
