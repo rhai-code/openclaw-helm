@@ -3,7 +3,7 @@ name: openclaw
 description: A Helm chart for OpenClaw AI Gateway with optional ClawSuite
   sidecar on OpenShift
 type: application
-version: 1.1.0
+version: 1.1.1
 appVersion: "2026.4.22"
 keywords:
   - openclaw

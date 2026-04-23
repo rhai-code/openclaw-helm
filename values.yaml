@@ -129,7 +129,7 @@ clawsuite:
   build:
     git:
       repository: https://github.com/outsourc-e/clawsuite.git
-      ref: v4.0.0
+      ref: main
 
     triggers:
       imageChange: true
