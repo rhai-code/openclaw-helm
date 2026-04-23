@@ -56,6 +56,11 @@ openclaw:
     agents:
       defaults:
         workspace: /workspace
+    tools:
+      elevated:
+        enabled: true
+        allowFrom:
+          webchat: ["*"]
     gateway:
       bind: "0.0.0.0"
       port: 18789
